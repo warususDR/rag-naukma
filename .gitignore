@@ -1,0 +1,8 @@
+legacy
+documents/
+__pycache__/
+.venv
+chroma_db/
+pipeline.log
+processed_documents.json
+test.py
