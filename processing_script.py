@@ -19,7 +19,7 @@ def main():
     CHROMA_DB_PATH = "./chroma_db"
     CHUNK_SIZE = 1000
     CHUNK_OVERLAP = 200
-    MAX_FILES = 10
+    MAX_FILES = None
     
     extractor = PDFExtractor()
     documents = extractor.extract_from_directory(
@@ -35,7 +35,7 @@ def main():
     
     builder = VectorStoreBuilder(
         embedding_model="BAAI/bge-m3",
-        collection_name="documents",
+        collection_name="naukma_documents_no_chunks",
         persist_directory=CHROMA_DB_PATH
     )
     
@@ -60,7 +60,7 @@ def main():
         logger.info(f"\nResult {i + 1} (distance: {distance:.4f}) ---")
         logger.info(f"Filename: {metadata['filename']}")
         logger.info(f"Chunk: {metadata['chunk_index'] + 1}/{metadata['total_chunks']}")
-        logger.info(f"Text preview: {doc[:200]}...")
+        logger.info(f"Text preview: {doc[:500]}...")
     
     logger.info(f"Vector store saved to: {CHROMA_DB_PATH}")
     logger.info(f"JSON documents saved to: {JSON_OUTPUT}")

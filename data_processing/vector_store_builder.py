@@ -32,7 +32,7 @@ class VectorStoreBuilder:
         
         self.collection = self.client.get_or_create_collection(
             name=collection_name,
-            metadata={"description": "PDF documents collection"}
+            metadata={"description": "naukma documents collection"}
         )
         
         logger.info(f"Collection '{collection_name}' ready. Current size: {self.collection.count()}")
@@ -59,7 +59,7 @@ class VectorStoreBuilder:
                 last_newline = chunk.rfind('\n')
                 break_point = max(last_period, last_newline)
                 
-                if break_point > chunk_size * 0.5: 
+                if break_point > chunk_size * 0.5:
                     chunk = chunk[:break_point + 1]
                     end = start + break_point + 1
             
@@ -71,13 +71,7 @@ class VectorStoreBuilder:
         
         return chunks
     
-    def add_documents_to_vector_store(
-        self, 
-        documents: List[Document],
-        chunk_size: int = 1000,
-        overlap: int = 200,
-        batch_size: int = 100
-    ):
+    def add_documents_to_vector_store(self, documents: List[Document], chunk_size: int = 1000, overlap: int = 200, batch_size: int = 100):
         logger.info(f"Adding {len(documents)} documents to vector store")
         
         all_chunks = []
@@ -137,6 +131,7 @@ class VectorStoreBuilder:
         
         query_embedding = self.embedding_model.encode(
             query,
+            show_progress_bar=False,
             normalize_embeddings=True
         ).tolist()
         
