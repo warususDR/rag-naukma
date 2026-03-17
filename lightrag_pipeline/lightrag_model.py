@@ -31,7 +31,7 @@ class LightRAGModel:
         llm_model_name: str,
         chroma_directory: str = "./chroma_db",
         chroma_collection: str = "naukma_documents_no_chunks",
-        temperature: float = 0.5,
+        temperature: float = 0.4,
         max_tokens: int = 2048,
         kv_storage: str = "PGKVStorage",
         vector_storage: str = "PGVectorStorage",
@@ -51,13 +51,15 @@ class LightRAGModel:
         self.rag = LightRAG(
             llm_model_func=self._llm_model_func,
             llm_model_name=self._llm_model_name,
+            llm_model_kwargs={ "options": {"temperature": self._temperature, "num_predict": self._max_tokens, "repeat_penalty": 1.3, 
+                               "repeat_last_n": 256, "num_ctx": 26000},
+                            },
             # llm_model_max_async=2,
             embedding_func=self.embedding_func,
             # embedding_func_max_async=4,
             summary_max_tokens=600,
             addon_params={
                 "language": "Ukrainian",
-                "entity_types": ["Особа", "Організація", "Місце", "Подія", "Концепція", "Документ", "Дата", "Артефакт"],
             },
             kv_storage=kv_storage,
             vector_storage=vector_storage,
@@ -94,23 +96,21 @@ class LightRAGModel:
         history_messages: list = [],
         **kwargs
     ) -> str:
+        # prompt = prompt.replace("<SEP>", " ")
+
         if system_prompt is None:
             system_prompt = """Ти - помічник для відповідей на питання про НаУКМА (Національний університет "Києво-Могилянська академія").
-Використовуй надані уривки документів для відповіді на питання користувача.
-Якщо в уривках виявлено граматичні чи фактичні (наприклад НаВКМА замість НаУКМА тощо) помилки та цю інформацію використано для відповіді, обов'язково виправ їх у відповіді.
-Відповідай українською мовою, будь точним та конкретним.
-Якщо в уривках документів немає інформації для відповіді, так і скажи.
-Не надавай зайвої інформації. Не надавай неіснуючі дати, це заборонено!
-Ігноруй незрозумілі символи та неточності з OCR.
-Ніколи не повторюй однакові пункти у списках — кожен елемент має з'являтися лише один раз.
-Перелічуй лише те, що прямо підтверджено в наданих уривках. Не вигадуй додаткових пунктів."""
+Перелічуй лише те, що прямо підтверджено в наданій інформації. Вигадування суворо заборонено, у випадку, якщо не знаєш чогось, повідом про це.
+Не додавай в кінці ### References
+- [1] Document Title One
+- [2] Document Title Two
+- [3] Document Title Three"""
 
         return await ollama_model_complete(
             prompt,
             system_prompt=system_prompt,
             history_messages=history_messages,
             host=self._ollama_host,
-            options={"temperature": self._temperature, "repeat_penalty": 1.3, "repeat_last_n": 256, "max_tokens_size": self._max_tokens},
             **kwargs
         )
     
@@ -176,22 +176,10 @@ class LightRAGModel:
             enhanced_question = f"Попередня розмова:\n{history_text}\n\nНове питання: {question}"
         else:
             enhanced_question = question
-
-        system_prompt = """Ти - помічник для відповідей на питання про НаУКМА (Національний університет "Києво-Могилянська академія").
-Використовуй надані уривки документів для відповіді на питання користувача.
-Якщо в уривках виявлено граматичні чи фактичні (наприклад НаВКМА замість НаУКМА тощо) помилки та цю інформацію використано для відповіді, обов'язково виправ їх у відповіді.
-Відповідай українською мовою, будь точним та конкретним.
-Якщо в уривках документів немає інформації для відповіді, так і скажи.
-Не надавай зайвої інформації. Не надавай неіснуючі дати, це заборонено!
-Ігноруй незрозумілі символи та неточності з OCR.
-Ніколи не повторюй однакові пункти у списках — кожен елемент має з'являтися лише один раз.
-Перелічуй лише те, що прямо підтверджено в наданих уривках. Не вигадуй додаткових пунктів."""
-
         
         response = self.rag.query(
-            system_prompt=system_prompt,
             query=enhanced_question,
-            param=QueryParam(mode=mode)
+            param=QueryParam(mode=mode, top_k=40)
         )
 
         

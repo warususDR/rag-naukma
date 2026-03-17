@@ -12,19 +12,20 @@ def main():
     
     rag = LightRAGModel(
         embedding_model="bge-m3",
-        llm_model_name="lapa-v0.1.2",
+        llm_model_name="mamaylum-4b",
         chroma_directory="../chroma_db",
         chroma_collection="naukma_documents_no_chunks",
     )
     
     # rag.load_from_chroma(max_documents=10)
-    rag.insert_from_text_dir("./texts", max_files=3)
+    # rag.insert_from_text_dir("./texts", max_files=5)
     
     questions = [
-        "Які є факультети в НаУКМА?",
-        "Розкажи коротко про історію університету НаУКМА",
-        "Які є вимоги для вступу на магістратуру НаУКМА?",
-        "Хто такий Сергій Квіт, яка його роль в НаУКМА?"
+        "Що ти знаєш про Т.О. Ярошенко з НаУКМА?",
+        # "Що відомо про Сергія Квіта з НаУКМА?"
+        # "Розкажи коротко про історію університету НаУКМА",
+        # "Які є вимоги для вступу на магістратуру НаУКМА?",
+        # "Хто такий Сергій Квіт, яка його роль в НаУКМА?"
     ]
     
     modes = ["hybrid"]
