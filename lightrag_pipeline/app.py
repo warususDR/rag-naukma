@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
-# Initialize RAG model once at startup
 logger.info("Initializing LightRAG model...")
 rag = LightRAGModel(
     embedding_model="bge-m3",
