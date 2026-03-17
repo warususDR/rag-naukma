@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --color-naukma-navy: #1B2A4A;
+  --color-naukma-gold: #C8A951;
+  --color-naukma-light: #F5F3EE;
+  --color-naukma-dark: #0F1A2E;
+  --color-naukma-accent: #2D4A7A;
+}
+
+html,
+body {
+  @apply bg-naukma-light text-gray-900;
+  min-height: 100vh;
+}

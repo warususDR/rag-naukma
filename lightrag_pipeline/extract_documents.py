@@ -1,15 +1,5 @@
-"""
-Extract text from PDFs in documents/ and save as .txt files for LightRAG ingestion.
-
-Usage:
-    python extract_documents.py [--docs-dir DIR] [--output-dir DIR] [--max-files N]
-
-Output directory defaults to lightrag_pipeline/texts/ and can be passed directly
-to LightRAGModel.insert_from_text_dir().
-"""
 import argparse
 import logging
-import os
 from pathlib import Path
 
 from pypdf import PdfReader
