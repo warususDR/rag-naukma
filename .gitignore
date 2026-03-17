@@ -6,3 +6,5 @@ chroma_db/
 pipeline.log
 processed_documents.json
 test.py
+.env
+texts/
