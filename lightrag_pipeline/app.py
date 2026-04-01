@@ -1,8 +1,3 @@
-"""
-NaUKMA RAG Web Interface
-Flask-based chat API for LightRAG pipeline.
-"""
-
 import atexit
 import logging
 from flask import Flask, request, jsonify
