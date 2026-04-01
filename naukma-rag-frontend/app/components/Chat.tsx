@@ -16,13 +16,11 @@ import { ChatInput } from "./ChatInput";
 import { Sidebar } from "./Sidebar";
 
 export function Chat() {
-  // --- session state ---
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [mode, setMode] = useState<Mode>("hybrid");
 
-  // --- ui state ---
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -32,7 +30,6 @@ export function Chat() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  // Bootstrap: load sessions from localStorage on mount
   useEffect(() => {
     const all = getAllSessions();
     setSessions(all);
@@ -45,14 +42,12 @@ export function Chat() {
     } else if (all.length > 0) {
       loadSession(all[0]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  // --- helpers ---
   function refreshSessions() {
     setSessions(getAllSessions());
   }
@@ -65,9 +60,7 @@ export function Chat() {
     setInput("");
   }
 
-  // --- handlers ---
   const handleNewChat = () => {
-    // Save current messages if any
     if (activeSessionId) {
       updateSession(activeSessionId, { messages, mode });
     }
@@ -83,14 +76,12 @@ export function Chat() {
       setSidebarOpen(false);
       return;
     }
-    // Save current
     if (activeSessionId) {
       updateSession(activeSessionId, { messages, mode });
     }
     const s = getSession(id);
     if (s) {
       loadSession(s);
-      // Sync server-side history: clear then we just rely on local
       clearServerHistory().catch(() => {});
     }
     refreshSessions();
@@ -123,7 +114,6 @@ export function Chat() {
     const question = input.trim();
     if (!question || loading) return;
 
-    // Ensure a session exists
     let sessionId = activeSessionId;
     if (!sessionId) {
       const s = createSession(mode);

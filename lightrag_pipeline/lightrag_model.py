@@ -23,7 +23,6 @@ NAUKMA_SYSTEM_PROMPT = (
     "Ти маєш надавати перевагу українській мові у своїх відповідях, уникай англійської мови."
 )
 
-# Simple greetings / non-informational queries that don't need RAG retrieval
 _GREETING_PATTERN = re.compile(
     r"^(привіт|здоров|вітаю|добрий\s+(день|ранок|вечір)|hi|hello|hey|дякую|спасибі|бувай|до побачення)[\s!?.]*$",
     re.IGNORECASE,
@@ -105,14 +104,11 @@ class LightRAGModel:
             logger.warning(f"Could not connect to Chroma collection: {e}")
             self.chroma_collection = None
 
-        # Conversation history in LightRAG-native format
         self._history: List[Dict[str, str]] = []
 
         logger.info("LightRAG model initialized successfully")
 
-    # ------------------------------------------------------------------
-    # LLM wrapper (called by LightRAG internally for ALL llm calls)
-    # ------------------------------------------------------------------
+
     async def _llm_model_func(
         self,
         prompt: str,
@@ -133,9 +129,7 @@ class LightRAGModel:
             **kwargs
         )
 
-    # ------------------------------------------------------------------
-    # Document ingestion
-    # ------------------------------------------------------------------
+
     def insert_documents(self, texts: List[str], file_paths: List[str] = None):
         logger.info(f"Inserting {len(texts)} documents into LightRAG...")
         self.rag.insert(texts, file_paths=file_paths)
@@ -183,13 +177,9 @@ class LightRAGModel:
                 self.insert_documents(results['documents'])
                 logger.info(f"Processed {offset + len(results['documents'])}/{limit} documents")
 
-    # ------------------------------------------------------------------
-    # Query
-    # ------------------------------------------------------------------
     def query(self, question: str, mode: str = "hybrid") -> Dict:
         logger.info(f"Query: {question} (mode: {mode})")
 
-        # Short-circuit simple greetings — skip heavy retrieval
         if _GREETING_PATTERN.match(question.strip()):
             logger.info("Greeting detected — using bypass mode")
             effective_mode = "bypass"
@@ -207,19 +197,14 @@ class LightRAGModel:
             self.rag.aquery(query=question, param=param)
         )
 
-        # Append to native history
         self._history.append({"role": "user", "content": question})
         self._history.append({"role": "assistant", "content": response})
 
-        # Keep last 6 messages (3 turns)
         if len(self._history) > 6:
             self._history = self._history[-6:]
 
         return {"query": question, "response": response, "mode": effective_mode}
 
-    # ------------------------------------------------------------------
-    # History management
-    # ------------------------------------------------------------------
     def clear_history(self):
         self._history.clear()
         logger.info("Conversation history cleared")
@@ -227,10 +212,6 @@ class LightRAGModel:
     def get_history(self) -> List[Dict[str, str]]:
         return list(self._history)
 
-    # ------------------------------------------------------------------
-    # Lifecycle
-    # ------------------------------------------------------------------
     def finalize(self):
-        """Finalize storages for clean shutdown."""
         self._loop.run_until_complete(self.rag.finalize_storages())
         logger.info("Storages finalized")

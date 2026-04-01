@@ -17,35 +17,35 @@ def main():
         chroma_collection="naukma_documents_no_chunks",
     )
     
-    # # rag.load_from_chroma(max_documents=10)
-    # rag.insert_from_text_dir("./texts")
+    # rag.load_from_chroma(max_documents=10)
+    rag.insert_from_text_dir("./texts")
     
-    # questions = [
-    #     "Яка посада у Ольги Полюхович в НаУКМА?",
-    #     "НаУКМА, що ти знаєш про цей університет?"
-    #     # "Розкажи коротко про історію університету НаУКМА",
-    #     "Які є вимоги для вступу на магістратуру НаУКМА?",
-    #     "Хто такий Сергій Квіт, яка його роль в НаУКМА?"
-    # ]
+    questions = [
+        "Яка посада у Ольги Полюхович в НаУКМА?",
+        "НаУКМА, що ти знаєш про цей університет?"
+        "Розкажи коротко про історію університету НаУКМА",
+        "Які є вимоги для вступу на магістратуру НаУКМА?",
+        "Хто такий Сергій Квіт, яка його роль в НаУКМА?"
+    ]
     
-    # modes = ["hybrid"]
+    modes = ["hybrid"]
     
-    # for question in questions:
-    #     print(f"\n{'='*60}")
-    #     print(f"Питання: {question}")
-    #     print(f"{'='*60}")
+    for question in questions:
+        print(f"\n{'='*60}")
+        print(f"Питання: {question}")
+        print(f"{'='*60}")
         
-    #     for mode in modes:
-    #         print(f"\nРежим: {mode} ---")
+        for mode in modes:
+            print(f"\nРежим: {mode} ---")
             
-    #         result = rag.query(
-    #             question,
-    #             mode=mode,
-    #         )
+            result = rag.query(
+                question,
+                mode=mode,
+            )
             
-    #         print(f"Відповідь: {result['response']}")
+            print(f"Відповідь: {result['response']}")
         
-    #     rag.clear_history()
+        rag.clear_history()
 
 
 if __name__ == "__main__":

@@ -63,7 +63,6 @@ export function updateSession(id: string, patch: Partial<Pick<ChatSession, "titl
   const idx = all.findIndex((s) => s.id === id);
   if (idx === -1) return;
   Object.assign(all[idx], patch, { updatedAt: Date.now() });
-  // Auto-title from first user message
   if (patch.messages && all[idx].title === "Нова розмова") {
     const firstUser = patch.messages.find((m) => m.role === "user");
     if (firstUser) {

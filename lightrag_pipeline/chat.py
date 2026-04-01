@@ -1,8 +1,3 @@
-"""
-LightRAG Chat Interface
-Chat interface for the advanced LightRAG pipeline with Lapa LLM.
-"""
-
 import logging
 import argparse
 from lightrag_pipeline import LightRAGModel
@@ -59,7 +54,6 @@ def main():
     
     args = parser.parse_args()
     
-    # Initialize LightRAG model
     logger.info("Initializing LightRAG model...")
     rag = LightRAGModel(
         embedding_model="bge-m3",
@@ -69,7 +63,6 @@ def main():
         temperature=args.temperature
     )
     
-    # Optionally load documents from Chroma
     if args.load_from_chroma:
         logger.info("Loading documents from Chroma DB...")
         rag.load_from_chroma(max_documents=args.max_docs)
@@ -102,7 +95,6 @@ def main():
                 print("Історію розмови очищено.")
                 continue
             
-            # Check for mode change
             if query.lower().startswith('mode '):
                 new_mode = query[5:].strip().lower()
                 if new_mode in ['naive', 'local', 'global', 'hybrid']:
@@ -112,7 +104,6 @@ def main():
                     print("Невірний режим. Доступні: naive, local, global, hybrid")
                 continue
             
-            # Query the model
             result = rag.query(query, mode=current_mode, use_history=True)
             
             print(f"\nАсистент: {result['response']}")
