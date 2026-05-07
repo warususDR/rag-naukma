@@ -14,7 +14,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         className={`max-w-[75%] rounded-2xl px-4 py-3 text-[15px] leading-relaxed
           ${
             isUser
-              ? "bg-naukma-navy text-white rounded-br-md whitespace-pre-wrap"
+              ? "bg-naukma-navy text-white rounded-br-md whitespace-pre-wrap break-words"
               : "bg-white border border-naukma-navy/10 text-gray-800 rounded-bl-md shadow-sm prose prose-sm prose-gray max-w-none"
           }`}
       >

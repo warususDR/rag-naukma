@@ -12,13 +12,13 @@ def main():
     
     rag = LightRAGModel(
         embedding_model="bge-m3",
-        llm_model_name="mamaylum-4b",
+        llm_model_name="mamaylum-12b",
         chroma_directory="../chroma_db",
         chroma_collection="naukma_documents_no_chunks",
+        num_ctx=32000,
     )
     
-    # rag.load_from_chroma(max_documents=10)
-    rag.insert_from_text_dir("./texts")
+    # rag.insert_from_json("../processed_documents.json")
     
     questions = [
         "Яка посада у Ольги Полюхович в НаУКМА?",

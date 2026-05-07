@@ -25,11 +25,11 @@ export function ChatInput({ value, onChange, onSend, disabled }: ChatInputProps)
         className="flex-1 resize-none rounded-xl border border-naukma-navy/15 bg-white px-4 py-3 text-[15px]
           placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-naukma-gold/50 focus:border-naukma-gold
           disabled:opacity-50 disabled:cursor-not-allowed"
-        style={{ maxHeight: "120px" }}
+        style={{ overflowY: "hidden" }}
         onInput={(e) => {
           const target = e.target as HTMLTextAreaElement;
           target.style.height = "auto";
-          target.style.height = Math.min(target.scrollHeight, 120) + "px";
+          target.style.height = target.scrollHeight + "px";
         }}
       />
       <button

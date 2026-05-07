@@ -1,3 +1,5 @@
+import { AuthExpiredError } from "./chatStore";
+
 export type Mode = "naive" | "local" | "global" | "hybrid";
 
 export interface Message {
@@ -8,26 +10,22 @@ export interface Message {
 export interface ChatResponse {
   answer: string;
   mode: string;
+  session_id: string;
 }
 
-export async function sendMessage(question: string, mode: Mode): Promise<ChatResponse> {
+export async function sendMessage(
+  question: string,
+  mode: Mode,
+  sessionId: string,
+  token: string
+): Promise<ChatResponse> {
   const res = await fetch("/api/chat", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, mode }),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ question, mode, session_id: sessionId }),
   });
+  if (res.status === 401) { throw new AuthExpiredError(); }
   if (!res.ok) throw new Error(`Chat request failed: ${res.status}`);
   return res.json();
 }
 
-export async function getHistory(): Promise<Message[]> {
-  const res = await fetch("/api/history");
-  if (!res.ok) throw new Error(`History request failed: ${res.status}`);
-  const data = await res.json();
-  return data.history ?? [];
-}
-
-export async function clearHistory(): Promise<void> {
-  const res = await fetch("/api/clear", { method: "POST" });
-  if (!res.ok) throw new Error(`Clear request failed: ${res.status}`);
-}

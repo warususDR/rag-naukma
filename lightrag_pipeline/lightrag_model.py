@@ -1,3 +1,4 @@
+import json
 import logging
 import asyncio
 import re
@@ -47,6 +48,7 @@ class LightRAGModel:
         chroma_collection: str = "naukma_documents_no_chunks",
         temperature: float = 0.7,
         max_tokens: int = 2048,
+        num_ctx: int = 30000,
         kv_storage: str = "PGKVStorage",
         vector_storage: str = "PGVectorStorage",
         graph_storage: str = "Neo4JStorage",
@@ -57,6 +59,7 @@ class LightRAGModel:
         self._ollama_host = ollama_host
         self._temperature = temperature
         self._max_tokens = max_tokens
+        self._num_ctx = num_ctx
 
         self.embedding_func = create_embedding_func(model_name=embedding_model, embedding_dim=1024, max_token_size=8192, host=ollama_host)
 
@@ -70,11 +73,11 @@ class LightRAGModel:
                     "temperature": self._temperature,
                     "repeat_penalty": 1.3,
                     "repeat_last_n": 256,
-                    "num_ctx": 30000,
+                    "num_ctx": self._num_ctx,
                 },
             },
             embedding_func=self.embedding_func,
-            summary_max_tokens=1200,
+            summary_max_tokens=1600,
             addon_params={
                 "language": "Ukrainian",
                 "entity_types": ["Особа", "Організація", "Місце", "Подія", "Концепція", "Документ", "Дата", "Артефакт"],
@@ -104,7 +107,7 @@ class LightRAGModel:
             logger.warning(f"Could not connect to Chroma collection: {e}")
             self.chroma_collection = None
 
-        self._history: List[Dict[str, str]] = []
+        self._history: List[Dict[str, str]] = []  # kept for compatibility
 
         logger.info("LightRAG model initialized successfully")
 
@@ -154,6 +157,30 @@ class LightRAGModel:
                 self.insert_documents(texts, file_paths=paths)
                 logger.info(f"Ingested {min(i + batch_size, total)}/{total} files")
 
+    def insert_from_json(self, json_path: str, max_files: Optional[int] = None, batch_size: int = 50):
+        with open(json_path, encoding="utf-8") as f:
+            entries = json.load(f)
+
+        if max_files:
+            entries = entries[:max_files]
+
+        total = len(entries)
+        logger.info(f"Found {total} documents in {json_path}")
+
+        for i in range(0, total, batch_size):
+            batch = entries[i:i + batch_size]
+            texts, paths = [], []
+            for entry in batch:
+                text = entry.get("text", "").strip()
+                if not text:
+                    logger.warning(f"Skipping empty entry: {entry.get('filename', '?')}")
+                    continue
+                texts.append(text)
+                paths.append(entry.get("filepath", entry.get("filename", "")))
+            if texts:
+                self.insert_documents(texts, file_paths=paths)
+                logger.info(f"Ingested {min(i + batch_size, total)}/{total} documents")
+
     def load_from_chroma(self, max_documents: Optional[int] = None):
         if self.chroma_collection is None:
             logger.warning("No Chroma collection available")
@@ -177,7 +204,7 @@ class LightRAGModel:
                 self.insert_documents(results['documents'])
                 logger.info(f"Processed {offset + len(results['documents'])}/{limit} documents")
 
-    def query(self, question: str, mode: str = "hybrid") -> Dict:
+    def query(self, question: str, mode: str = "hybrid", history: Optional[List[Dict[str, str]]] = None) -> Dict:
         logger.info(f"Query: {question} (mode: {mode})")
 
         if _GREETING_PATTERN.match(question.strip()):
@@ -186,22 +213,18 @@ class LightRAGModel:
         else:
             effective_mode = mode
 
+        conversation_history = list(history) if history else []
+
         param = QueryParam(
             mode=effective_mode,
             top_k=40,
-            conversation_history=list(self._history),
+            conversation_history=conversation_history,
             user_prompt=NAUKMA_SYSTEM_PROMPT,
         )
 
         response = self._loop.run_until_complete(
             self.rag.aquery(query=question, param=param)
         )
-
-        self._history.append({"role": "user", "content": question})
-        self._history.append({"role": "assistant", "content": response})
-
-        if len(self._history) > 6:
-            self._history = self._history[-6:]
 
         return {"query": question, "response": response, "mode": effective_mode}
 

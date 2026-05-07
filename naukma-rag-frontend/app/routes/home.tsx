@@ -1,4 +1,6 @@
 import type { Route } from "./+types/home";
+import { Navigate } from "react-router";
+import { useAuth } from "../components/AuthProvider";
 import { Chat } from "../components/Chat";
 
 export function meta({}: Route.MetaArgs) {
@@ -9,5 +11,8 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
+  const { credential } = useAuth();
+  if (!credential) return <Navigate to="/login" replace />;
   return <Chat />;
 }
+

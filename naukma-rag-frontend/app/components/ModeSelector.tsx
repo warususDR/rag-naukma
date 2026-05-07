@@ -23,7 +23,7 @@ export function ModeSelector({ value, onChange, disabled }: ModeSelectorProps) {
           key={mode}
           onClick={() => onChange(mode)}
           disabled={disabled}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer
+          className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer
             ${
               value === mode
                 ? "bg-naukma-navy text-naukma-gold shadow-md"

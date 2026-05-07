@@ -6,6 +6,8 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
   server: {
+    host: true,
+    allowedHosts: ["shush-theft-angling.ngrok-free.dev"],
     proxy: {
       "/api": {
         target: "http://localhost:5000",

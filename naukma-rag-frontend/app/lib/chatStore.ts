@@ -5,25 +5,11 @@ export interface ChatSession {
   title: string;
   mode: Mode;
   messages: Message[];
-  createdAt: number;
-  updatedAt: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-const STORAGE_KEY = "naukma-rag-chats";
 const ACTIVE_KEY = "naukma-rag-active-chat";
-
-function readAll(): ChatSession[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeAll(sessions: ChatSession[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
-}
 
 export function getActiveId(): string | null {
   return localStorage.getItem(ACTIVE_KEY);
@@ -34,46 +20,59 @@ export function setActiveId(id: string | null) {
   else localStorage.removeItem(ACTIVE_KEY);
 }
 
-export function getAllSessions(): ChatSession[] {
-  return readAll().sort((a, b) => b.updatedAt - a.updatedAt);
+function authHeaders(token: string) {
+  return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 }
 
-export function getSession(id: string): ChatSession | undefined {
-  return readAll().find((s) => s.id === id);
+export class AuthExpiredError extends Error {
+  constructor() { super("AUTH_EXPIRED"); }
 }
 
-export function createSession(mode: Mode = "hybrid"): ChatSession {
-  const session: ChatSession = {
-    id: crypto.randomUUID(),
-    title: "Нова розмова",
-    mode,
-    messages: [],
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  };
-  const all = readAll();
-  all.push(session);
-  writeAll(all);
-  setActiveId(session.id);
-  return session;
+function checkAuth(res: Response) {
+  if (res.status === 401) throw new AuthExpiredError();
 }
 
-export function updateSession(id: string, patch: Partial<Pick<ChatSession, "title" | "mode" | "messages">>) {
-  const all = readAll();
-  const idx = all.findIndex((s) => s.id === id);
-  if (idx === -1) return;
-  Object.assign(all[idx], patch, { updatedAt: Date.now() });
-  if (patch.messages && all[idx].title === "Нова розмова") {
-    const firstUser = patch.messages.find((m) => m.role === "user");
-    if (firstUser) {
-      all[idx].title = firstUser.content.slice(0, 50) + (firstUser.content.length > 50 ? "…" : "");
-    }
-  }
-  writeAll(all);
+export async function getAllSessions(token: string): Promise<ChatSession[]> {
+  const res = await fetch("/api/sessions", { headers: authHeaders(token) });
+  checkAuth(res);
+  if (!res.ok) throw new Error("Failed to fetch sessions");
+  return res.json();
 }
 
-export function deleteSession(id: string) {
-  const all = readAll().filter((s) => s.id !== id);
-  writeAll(all);
-  if (getActiveId() === id) setActiveId(null);
+export async function getSession(id: string, token: string): Promise<ChatSession> {
+  const res = await fetch(`/api/sessions/${id}`, { headers: authHeaders(token) });
+  checkAuth(res);
+  if (!res.ok) throw new Error("Failed to fetch session");
+  return res.json();
 }
+
+export async function createSession(mode: Mode, token: string): Promise<ChatSession> {
+  const res = await fetch("/api/sessions", {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ mode }),
+  });
+  checkAuth(res);
+  if (!res.ok) throw new Error("Failed to create session");
+  return res.json();
+}
+
+export async function updateSession(
+  id: string,
+  patch: Partial<{ title: string; mode: Mode }>,
+  token: string
+): Promise<void> {
+  await fetch(`/api/sessions/${id}`, {
+    method: "PATCH",
+    headers: authHeaders(token),
+    body: JSON.stringify(patch),
+  });
+}
+
+export async function deleteSession(id: string, token: string): Promise<void> {
+  await fetch(`/api/sessions/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(token),
+  });
+}
+
