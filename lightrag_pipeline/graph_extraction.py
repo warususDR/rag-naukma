@@ -18,7 +18,7 @@ def main():
         num_ctx=32000,
     )
     
-    # rag.insert_from_json("../processed_documents.json")
+    rag.insert_from_json("../processed_documents.json")
     
     questions = [
         "Яка посада у Ольги Полюхович в НаУКМА?",
@@ -31,9 +31,7 @@ def main():
     modes = ["hybrid"]
     
     for question in questions:
-        print(f"\n{'='*60}")
         print(f"Питання: {question}")
-        print(f"{'='*60}")
         
         for mode in modes:
             print(f"\nРежим: {mode} ---")

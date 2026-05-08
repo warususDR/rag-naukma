@@ -112,7 +112,7 @@ def main():
         "--max-files",
         type=int,
         default=None,
-        help="Limit number of PDFs to process (useful for testing)",
+        help="Limit number of PDFs to process (for testing)",
     )
     parser.add_argument(
         "--pymupdf",

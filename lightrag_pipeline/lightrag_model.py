@@ -22,6 +22,7 @@ NAUKMA_SYSTEM_PROMPT = (
     "Перелічуй лише те, що прямо підтверджено в наданій інформації. "
     "Вигадування суворо заборонено, у випадку, якщо не знаєш чогось, повідом про це. "
     "Ти маєш надавати перевагу українській мові у своїх відповідях, уникай англійської мови."
+    "Надавай пріоритет наданому контексту, а не історії повідомлень, якщо є конфлікт між ними. "
 )
 
 _GREETING_PATTERN = re.compile(
@@ -63,16 +64,14 @@ class LightRAGModel:
 
         self.embedding_func = create_embedding_func(model_name=embedding_model, embedding_dim=1024, max_token_size=8192, host=ollama_host)
 
-        logger.info("Initializing LightRAG...")
-
         self.rag = LightRAG(
             llm_model_func=self._llm_model_func,
             llm_model_name=self._llm_model_name,
             llm_model_kwargs={
                 "options": {
                     "temperature": self._temperature,
-                    "repeat_penalty": 1.3,
-                    "repeat_last_n": 256,
+                    "repeat_penalty": 1.1,
+                    "repeat_last_n": 64,
                     "num_ctx": self._num_ctx,
                 },
             },
@@ -107,7 +106,7 @@ class LightRAGModel:
             logger.warning(f"Could not connect to Chroma collection: {e}")
             self.chroma_collection = None
 
-        self._history: List[Dict[str, str]] = []  # kept for compatibility
+        self._history: List[Dict[str, str]] = []
 
         logger.info("LightRAG model initialized successfully")
 
@@ -138,6 +137,7 @@ class LightRAGModel:
         self.rag.insert(texts, file_paths=file_paths)
         logger.info("Documents inserted successfully")
 
+
     def insert_from_text_dir(self, text_dir: str, max_files: Optional[int] = None, batch_size: int = 50):
         txt_files = sorted(Path(text_dir).glob("*.txt"))
         if max_files:
@@ -156,6 +156,7 @@ class LightRAGModel:
             if texts:
                 self.insert_documents(texts, file_paths=paths)
                 logger.info(f"Ingested {min(i + batch_size, total)}/{total} files")
+
 
     def insert_from_json(self, json_path: str, max_files: Optional[int] = None, batch_size: int = 50):
         with open(json_path, encoding="utf-8") as f:
@@ -181,7 +182,7 @@ class LightRAGModel:
                 self.insert_documents(texts, file_paths=paths)
                 logger.info(f"Ingested {min(i + batch_size, total)}/{total} documents")
 
-    def load_from_chroma(self, max_documents: Optional[int] = None):
+    def load_from_chroma(self, max_documents: Optional[int] = None, batch_size: int = 50):
         if self.chroma_collection is None:
             logger.warning("No Chroma collection available")
             return
@@ -191,7 +192,6 @@ class LightRAGModel:
 
         logger.info(f"Loading {limit} documents from Chroma DB...")
 
-        batch_size = 100
         for offset in range(0, limit, batch_size):
             batch_limit = min(batch_size, limit - offset)
             results = self.chroma_collection.get(
@@ -217,16 +217,41 @@ class LightRAGModel:
 
         param = QueryParam(
             mode=effective_mode,
-            top_k=40,
+            top_k=20,
             conversation_history=conversation_history,
             user_prompt=NAUKMA_SYSTEM_PROMPT,
+            enable_rerank=False
         )
 
-        response = self._loop.run_until_complete(
-            self.rag.aquery(query=question, param=param)
+        result = self._loop.run_until_complete(
+            self.rag.aquery_llm(query=question, param=param)
         )
 
-        return {"query": question, "response": response, "mode": effective_mode}
+        response = (result.get("llm_response") or {}).get("content") or ""
+
+        # Strip leading heading
+        response = re.sub(r'^#{1,3}\s*\S.*\n+', '', response).strip()
+
+        # Strip any trailing references
+        refs_match = re.search(r'\n+#{1,3}\s*References\s*\n.*$', response, flags=re.DOTALL | re.IGNORECASE)
+        if refs_match:
+            response = response[:refs_match.start()].strip()
+
+        # Strip inline citation labels
+        response = re.sub(r'\s*\bReferences?:\s*\[[\d,\s]+\]', '', response, flags=re.IGNORECASE)
+        response = re.sub(r'\*{1,2}\s*\[[\d,\s]+\]\s*\*{1,2}', '', response)  # **[1]** or *[1]*
+        response = re.sub(r'\s*\[[\d,\s]+\]', '', response)
+        # Clean up empty bold/italic markers left behind
+        response = re.sub(r'\*{2,3}\s*\*{2,3}', '', response).strip()
+
+        # Get reference file paths from structured data
+        refs = [
+            r["file_path"]
+            for r in (result.get("data") or {}).get("references", [])[:5]
+            if r.get("file_path")
+        ]
+
+        return {"query": question, "response": response, "references": refs, "mode": effective_mode}
 
     def clear_history(self):
         self._history.clear()

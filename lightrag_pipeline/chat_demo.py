@@ -57,7 +57,7 @@ def main():
     logger.info("Initializing LightRAG model...")
     rag = LightRAGModel(
         embedding_model="bge-m3",
-        llm_model_name="lapa-v0.1.2",
+        llm_model_name="mamaylum-12b",
         chroma_directory=args.chroma_dir,
         chroma_collection=args.collection,
         temperature=args.temperature
@@ -67,9 +67,7 @@ def main():
         logger.info("Loading documents from Chroma DB...")
         rag.load_from_chroma(max_documents=args.max_docs)
     
-    print("\n" + "="*60)
-    print("НАУКМА Асистент (LightRAG + MamayLM)")
-    print("="*60)
+    print("НАУКМА Асистент")
     print(f"Режим запитів: {args.mode}")
     print("\nКоманди:")
     print("  'exit' - вийти")
