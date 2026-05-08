@@ -23,6 +23,11 @@ import { Sidebar } from "./Sidebar";
 export function Chat() {
   const auth = useAuth();
 
+  const handleAuthError = useCallback((e: unknown) => {
+    if (e instanceof AuthExpiredError) { auth.logout(); googleLogout(); }
+    else throw e;
+  }, [auth]);
+
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -51,7 +56,7 @@ export function Chat() {
       } else if (all.length > 0) {
         loadSessionData(all[0]);
       }
-    })().catch((e) => { if (e instanceof AuthExpiredError) { auth.logout(); googleLogout(); } else console.error(e); });
+    })().catch(handleAuthError);
   }, []);
 
   useEffect(() => {
@@ -72,51 +77,61 @@ export function Chat() {
   }
 
   const handleNewChat = async () => {
-    const token = auth.credential!;
-    const s = await createSession(mode, token);
-    loadSessionData(s);
-    await refreshSessions();
-    setSidebarOpen(false);
+    try {
+      const token = auth.credential!;
+      const s = await createSession(mode, token);
+      loadSessionData(s);
+      await refreshSessions();
+      setSidebarOpen(false);
+    } catch (e) { handleAuthError(e); }
   };
 
   const handleSelectSession = async (id: string) => {
     if (id === activeSessionId) { setSidebarOpen(false); return; }
-    const token = auth.credential!;
-    const s = await getSession(id, token);
-    loadSessionData(s);
-    await refreshSessions();
-    setSidebarOpen(false);
+    try {
+      const token = auth.credential!;
+      const s = await getSession(id, token);
+      loadSessionData(s);
+      await refreshSessions();
+      setSidebarOpen(false);
+    } catch (e) { handleAuthError(e); }
   };
 
   const handleDeleteSession = async (id: string) => {
-    const token = auth.credential!;
-    await deleteSession(id, token);
-    if (id === activeSessionId) {
-      const remaining = await getAllSessions(token);
-      if (remaining.length > 0) {
-        loadSessionData(remaining[0]);
-      } else {
-        const s = await createSession(mode, token);
-        loadSessionData(s);
+    try {
+      const token = auth.credential!;
+      await deleteSession(id, token);
+      if (id === activeSessionId) {
+        const remaining = await getAllSessions(token);
+        if (remaining.length > 0) {
+          loadSessionData(remaining[0]);
+        } else {
+          const s = await createSession(mode, token);
+          loadSessionData(s);
+        }
       }
-    }
-    await refreshSessions();
+      await refreshSessions();
+    } catch (e) { handleAuthError(e); }
   };
 
   const handleModeChange = async (newMode: Mode) => {
     setMode(newMode);
     if (activeSessionId) {
-      const token = auth.credential!;
-      await updateSession(activeSessionId, { mode: newMode }, token);
+      try {
+        const token = auth.credential!;
+        await updateSession(activeSessionId, { mode: newMode }, token);
+      } catch (e) { handleAuthError(e); }
     }
   };
 
   const handleClear = async () => {
-    const token = auth.credential!;
-    if (activeSessionId) await deleteSession(activeSessionId, token);
-    const s = await createSession(mode, token);
-    loadSessionData(s);
-    await refreshSessions();
+    try {
+      const token = auth.credential!;
+      if (activeSessionId) await deleteSession(activeSessionId, token);
+      const s = await createSession(mode, token);
+      loadSessionData(s);
+      await refreshSessions();
+    } catch (e) { handleAuthError(e); }
   };
 
   const handleSend = async () => {
@@ -138,7 +153,7 @@ export function Chat() {
 
     try {
       const data = await sendMessage(question, mode, sessionId, token);
-      const updated: Message[] = [...newMessages, { role: "assistant", content: data.answer }];
+      const updated: Message[] = [...newMessages, { role: "assistant", content: data.answer, references: data.references }];
       setMessages(updated);
       await refreshSessions();
     } catch (e) {
@@ -210,7 +225,7 @@ export function Chat() {
                 </svg>
               </button>
 
-              {/* Profile avatar + dropdown */}
+              {/* Profile */}
               <div className="relative">
                 <button
                   onClick={() => setProfileOpen((o) => !o)}
@@ -262,7 +277,7 @@ export function Chat() {
               </div>
             </div>
           </div>
-          {/* Mode selector — mobile only (second row) */}
+          {/* Mode selector */}
           <div className="mt-2 sm:hidden">
             <ModeSelector value={mode} onChange={handleModeChange} disabled={loading} />
           </div>
@@ -282,7 +297,7 @@ export function Chat() {
               </h2>
               <p className="text-sm text-gray-500 max-w-md">
                 Запитайте мене про Національний університет «Києво-Могилянська академія» —
-                факультети, програми, історію, правила вступу тощо.
+                накази, викладачі, факультети, програми, історію, правила вступу тощо.
               </p>
             </div>
           )}

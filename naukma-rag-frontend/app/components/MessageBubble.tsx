@@ -21,22 +21,34 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         {isUser ? (
           message.content
         ) : (
-          <Markdown
-            components={{
-              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-              ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
-              ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
-              li: ({ children }) => <li className="mb-0.5">{children}</li>,
-              strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-              h3: ({ children }) => <h3 className="font-semibold text-base mt-3 mb-1">{children}</h3>,
-              h4: ({ children }) => <h4 className="font-semibold text-sm mt-2 mb-1">{children}</h4>,
-              code: ({ children }) => (
-                <code className="bg-gray-100 rounded px-1 py-0.5 text-sm font-mono">{children}</code>
-              ),
-            }}
-          >
-            {message.content}
-          </Markdown>
+          <>
+            <Markdown
+              components={{
+                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
+                ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
+                li: ({ children }) => <li className="mb-0.5">{children}</li>,
+                strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                h3: ({ children }) => <h3 className="font-semibold text-base mt-3 mb-1">{children}</h3>,
+                h4: ({ children }) => <h4 className="font-semibold text-sm mt-2 mb-1">{children}</h4>,
+                code: ({ children }) => (
+                  <code className="bg-gray-100 rounded px-1 py-0.5 text-sm font-mono">{children}</code>
+                ),
+              }}
+            >
+              {message.content}
+            </Markdown>
+            {message.references && message.references.length > 0 && (
+              <details className="mt-2 text-xs text-gray-400 not-prose">
+                <summary className="cursor-pointer select-none">Джерела ({message.references.length})</summary>
+                <ul className="mt-1 space-y-0.5 pl-1 list-none">
+                  {message.references.map((ref, i) => (
+                    <li key={i} className="font-mono break-all">{ref.replace(/^.*[/\\]/, '')}</li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </>
         )}
       </div>
     </div>

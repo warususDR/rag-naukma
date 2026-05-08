@@ -5,10 +5,12 @@ export type Mode = "naive" | "local" | "global" | "hybrid";
 export interface Message {
   role: "user" | "assistant";
   content: string;
+  references?: string[];
 }
 
 export interface ChatResponse {
   answer: string;
+  references: string[];
   mode: string;
   session_id: string;
 }
