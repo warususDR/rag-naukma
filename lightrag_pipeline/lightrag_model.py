@@ -255,11 +255,18 @@ class LightRAGModel:
         # Get reference file paths from structured data
         refs = [
             r["file_path"]
-            for r in (result.get("data") or {}).get("references", [])[:5]
+            for r in (result.get("data") or {}).get("references", [])
             if r.get("file_path")
         ]
 
-        return {"query": question, "response": response, "references": refs, "mode": effective_mode}
+        # Get retrieved chunk texts for evaluation (RAGAS contexts)
+        chunks = [
+            c["content"]
+            for c in (result.get("data") or {}).get("chunks", [])
+            if c.get("content")
+        ]
+
+        return {"query": question, "response": response, "references": refs, "chunks": chunks, "mode": effective_mode}
 
     def clear_history(self):
         self._history.clear()
