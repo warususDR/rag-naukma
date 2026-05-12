@@ -4,6 +4,9 @@ import logging
 import uuid
 from datetime import datetime, timezone
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, g, jsonify, request
 from flask_cors import CORS
 
@@ -114,14 +117,12 @@ def chat():
     row = fetch_session(session_id) if session_id else None
     history = list(row["messages"]) if row else []
 
-    result = rag.query(question, mode=mode, history=history)
+    rag_context = history[-20:] if len(history) > 20 else history
+    result = rag.query(question, mode=mode, history=rag_context)
 
-    # Persist updated messages
     if row is not None:
         history.append({"role": "user", "content": question})
         history.append({"role": "assistant", "content": result["response"], "references": result.get("references", [])})
-        if len(history) > 20:
-            history = history[-20:]
         title = row["title"]
         if title == "Нова розмова":
             title = question[:50] + ("…" if len(question) > 50 else "")

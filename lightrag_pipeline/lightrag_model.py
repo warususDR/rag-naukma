@@ -21,8 +21,11 @@ NAUKMA_SYSTEM_PROMPT = (
     '(Національний університет "Києво-Могилянська академія"). '
     "Перелічуй лише те, що прямо підтверджено в наданій інформації. "
     "Вигадування суворо заборонено, у випадку, якщо не знаєш чогось, повідом про це. "
-    "Ти маєш надавати перевагу українській мові у своїх відповідях, уникай англійської мови."
+    "Ти маєш надавати перевагу українській мові у своїх відповідях, уникай англійської мови. "
     "Надавай пріоритет наданому контексту, а не історії повідомлень, якщо є конфлікт між ними. "
+    "Ніколи не цитуй і не відтворюй технічні дані у відповіді: JSON, XML, фрагменти коду, "
+    "назви полів (entity1, entity2, description тощо) та будь-яку інформацію з Knowledge Graph — використовуй їх лише для формування "
+    "відповіді як контекст."
 )
 
 _GREETING_PATTERN = re.compile(
@@ -243,6 +246,11 @@ class LightRAGModel:
         response = re.sub(r'\s*\[[\d,\s]+\]', '', response)
         # Clean up empty bold/italic markers left behind
         response = re.sub(r'\*{2,3}\s*\*{2,3}', '', response).strip()
+
+        # Strip fenced code blocks (```...```) — replace with their inner content
+        response = re.sub(r'```[^\n]*\n(.*?)```', lambda m: m.group(1).strip(), response, flags=re.DOTALL)
+        # Strip leading whitespace from lines to prevent indented code-block rendering
+        response = "\n".join(line.lstrip() for line in response.splitlines()).strip()
 
         # Get reference file paths from structured data
         refs = [
