@@ -117,7 +117,7 @@ def chat():
     row = fetch_session(session_id) if session_id else None
     history = list(row["messages"]) if row else []
 
-    rag_context = history[-20:] if len(history) > 20 else history
+    rag_context = history[-8:] if len(history) > 8 else history
     result = rag.query(question, mode=mode, history=rag_context)
 
     if row is not None:

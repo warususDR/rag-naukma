@@ -220,7 +220,7 @@ class LightRAGModel:
 
         param = QueryParam(
             mode=effective_mode,
-            top_k=20,
+            top_k=10,
             conversation_history=conversation_history,
             user_prompt=NAUKMA_SYSTEM_PROMPT,
             enable_rerank=False
