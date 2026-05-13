@@ -243,7 +243,7 @@ def main():
                 scores.extend(evaluate_batch(batch, client))
                 save_scores(scores)
                 logger.info(f"[{mode}] Batch saved. Total scored: {len([s for s in scores if 'error' not in s])}")
-                time.sleep(10)
+                time.sleep(1)
             except Exception as e:
                 logger.error(f"[{mode}] Batch failed: {e}")
                 for entry in batch:
