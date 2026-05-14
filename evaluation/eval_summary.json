@@ -1,0 +1,29 @@
+{
+  "hybrid": {
+    "n": 105,
+    "faithfulness": 0.9114,
+    "answer_correctness": 0.8448,
+    "faithfulness_v2": 0.9548,
+    "answer_correctness_v2": 0.819,
+    "context_relevance": 0.849,
+    "context_recall": 0.9362
+  },
+  "local": {
+    "n": 105,
+    "faithfulness": 0.7281,
+    "answer_correctness": 0.5457,
+    "faithfulness_v2": 0.7543,
+    "answer_correctness_v2": 0.4762,
+    "context_relevance": 0.5186,
+    "context_recall": 0.5724
+  },
+  "naive": {
+    "n": 105,
+    "faithfulness": 0.9329,
+    "answer_correctness": 0.8452,
+    "faithfulness_v2": 0.971,
+    "answer_correctness_v2": 0.8305,
+    "context_relevance": 0.8443,
+    "context_recall": 0.9619
+  }
+}
