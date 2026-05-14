@@ -16,7 +16,7 @@ class RAGModel:
         embedding_model: str = "BAAI/bge-m3",
         collection_name: str = "naukma_documents_no_chunks",
         persist_directory: str = "./chroma_db",
-        ollama_model: str = "llama3",
+        ollama_model: str = "mamaylum-12b",
         ollama_url: str = "http://localhost:11434",
         top_k: int = 3
     ):
