@@ -69,7 +69,7 @@ function InnerAuthProvider({ children }: { children: React.ReactNode }) {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID} locale="uk">
       <InnerAuthProvider>{children}</InnerAuthProvider>
     </GoogleOAuthProvider>
   );

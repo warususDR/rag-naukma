@@ -1,6 +1,7 @@
 import atexit
 import json
 import logging
+import os
 import uuid
 from datetime import datetime, timezone
 
@@ -20,9 +21,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=[FRONTEND_URL])
 
 logger.info("Initializing LightRAG model...")
 rag = LightRAGModel(
@@ -30,6 +33,7 @@ rag = LightRAGModel(
     llm_model_name="mamaylum-12b",
     chroma_directory="../chroma_db",
     chroma_collection="naukma_documents_no_chunks",
+    ollama_host=OLLAMA_HOST,
 )
 logger.info("LightRAG model ready.")
 init_db()
