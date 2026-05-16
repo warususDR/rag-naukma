@@ -21,7 +21,7 @@ SCORES_FILE = EVAL_DIR / "eval_scores.json"
 SUMMARY_FILE = EVAL_DIR / "eval_summary.json"
 
 MODES = ["hybrid", "local", "naive"]
-METRIC_NAMES = ["faithfulness", "answer_correctness", "context_relevance", "context_recall"]
+METRIC_NAMES = ["faithfulness", "answer_correctness", "context_relevance", "context_recall", "faithfulness_v2", "answer_correctness_v2"]
 BATCH_SIZE = 10
 SLEEP_AFTER_BATCH = 10
 SLEEP_AFTER_REQUEST = 3
