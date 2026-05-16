@@ -19,6 +19,7 @@ MODES = ["hybrid", "local", "naive"]
 
 QUESTION_FILES = sorted(EVAL_DIR.glob("questions_batch*.json")) + [
     EVAL_DIR / "questions_reasoning.json",
+    EVAL_DIR / "questions_reasoning2.json",
     EVAL_DIR / "questions_edge.json",
 ]
 
