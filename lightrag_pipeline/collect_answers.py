@@ -124,7 +124,6 @@ def main():
                 }
                 append_response(responses, entry)
 
-            # Small pause to avoid hammering Ollama
             time.sleep(0.5)
 
     logger.info(

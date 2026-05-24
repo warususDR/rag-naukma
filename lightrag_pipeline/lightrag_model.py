@@ -247,7 +247,7 @@ class LightRAGModel:
         # Clean up empty bold/italic markers left behind
         response = re.sub(r'\*{2,3}\s*\*{2,3}', '', response).strip()
 
-        # Strip fenced code blocks (```...```) — replace with their inner content
+        # Strip fenced code blocks (```...```), replace with their inner content
         response = re.sub(r'```[^\n]*\n(.*?)```', lambda m: m.group(1).strip(), response, flags=re.DOTALL)
         # Strip leading whitespace from lines to prevent indented code-block rendering
         response = "\n".join(line.lstrip() for line in response.splitlines()).strip()

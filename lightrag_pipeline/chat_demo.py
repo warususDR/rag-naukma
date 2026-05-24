@@ -73,7 +73,6 @@ def main():
     print("  'exit' - вийти")
     print("  'clear' - очистити історію розмови")
     print("  'mode <режим>' - змінити режим (naive/local/global/hybrid)")
-    print("="*60 + "\n")
     
     current_mode = args.mode
     

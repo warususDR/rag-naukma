@@ -209,7 +209,7 @@ export function Chat() {
               </div>
             </div>
             <div className="flex items-center gap-3 flex-shrink-0">
-              {/* Mode selector — desktop only */}
+              {/* Mode selector */}
               <div className="hidden sm:block">
                 <ModeSelector value={mode} onChange={handleModeChange} disabled={loading} />
               </div>
